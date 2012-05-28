@@ -1,0 +1,107 @@
+<%
+
+# описание и параметры фильтров смотрим здесь:
+# http://blitline.com/docs/functions
+
+
+
+filters = []
+filters << { :name=> "annotate", :params=> {:text=>"Photo annotation" } }
+filters << { :name=> "blur", :params=> {:radius=>1 } }
+
+filters << { :name=> "crop", :params=> {:x=> 10, :y=>10, :width=>60, :height=>60 } }
+
+filters << { :name=> "deskew", :params=> {} }
+filters << { :name=> "equalize", :params=> {} }
+
+filters << { :name=> "gamma_channel", :params=> {} }
+filters << { :name=> "median_filter", :params=> {} }
+
+filters << { :name=> "photograph", :params=> {:angleAngle  => 60 } }
+
+
+
+filters << { :name=> "sketch", :params=> {} }
+filters << { :name=> "trim", :params=> {} }
+filters << { :name=> "vignette", :params=> {} }
+
+
+# Special Filters
+filters << { :name=> "celsius", :params=> {} }
+filters << { :name=> "savannah", :params=> {} }
+filters << { :name=> "lomo", :params=> {} }
+filters << { :name=> "stackhouse", :params=> {} }
+filters << { :name=> "vintage", :params=> {} }
+filters << { :name=> "xpro", :params=> {} }
+
+
+# запустить работы по выполнению обработки фотографии согласно фильтрам, на сервисе
+filters.each do |filter|
+  jobs_todo = []
+  filter_name = filter[:name]
+  if session[:blitline_result] && session[:blitline_result][filter_name]
+    # если результирующий URL уже в сессии - то ничего не делаем, а будет отображать картинку
+  else
+    # иначе добавляем работу
+    jobs_todo << filter
+  end
+
+  if jobs_todo.size > 0
+    # регистрируем работы на сервисе
+    blitline_service = Blitline.new
+
+    jobs_todo.each do |filter|
+      job = Blitline::Job.new(params[:img_src])
+      job.application_id = ENV["BLITLINE_APPLICATION_ID"]
+      job.add_function( filter[:name], filter[:params] ).add_save(filter[:name])
+      blitline_service.jobs << job
+    end
+
+    blitline_result = blitline_service.post_jobs
+
+    session[:blitline_result] ||= {}
+    blitline_result["results"][0]["images"].each do |result_image|
+      image_identifier = result_image["image_identifier"] # filter name
+      s3_url = result_image["s3_url"]
+      session[:blitline_result][image_identifier] = s3_url
+    end
+  end # jobs
+end # filters
+
+
+%>
+
+<br>
+  <h2>Примеры фильтров</h2>
+<div class="alert">
+  <h4 class="alert-heading">Внимание!</h4>
+  Обработка изображения идёт в фоновом режиме на сервисе, поэтому если результатов не видно сразу - нажимайте "Обновить страницу".
+</div>
+
+Результат применения фильтров: 
+<% filters.each do |filter| %>
+  <a href="#<%= filter[:name] %>"><%= filter[:name] %></a> |
+<% end %>
+  <br>
+  Оригинальное изображение (<a href="/">выбрать другое фото</a>):
+  <br>
+  <img width="400" src="<%= params[:img_src] %>" />
+  <br/>
+  <br/>
+
+
+<% filters.each do |filter| %>
+  <% filter_name = filter[:name] %>
+  <a name="<%= filter_name %>"></a>
+  <h3><%= filter_name %> <a href="#top">^</a></h3>
+  <% if filter[:params] != {} %>
+    params: <%= filter[:params].inspect %><br>
+  <% end %>
+
+  <% if session[:blitline_result] && session[:blitline_result][filter_name] %>
+    <a href="#top" title="back"><img border="0" src="<%= session[:blitline_result][filter_name] %>" /></a>
+    <br />
+    <br />
+  <% end %>
+<% end %>
+

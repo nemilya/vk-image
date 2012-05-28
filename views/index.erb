@@ -1,0 +1,24 @@
+<div class="row-fluid">
+  <!-- without left menu -->
+  <% # erb :left_menu%> 
+  <a name="top"></a>
+
+  <div class="span12"> <!-- use 'span9' with left menu -->
+    <div class="hero-unit">
+      <h1>ВКонтакте работа с изображениями</h1>
+      <p>Пример авторизации через аккаунт в системе ВК, и использования Open API (на базе <a href="https://github.com/7even/vkontakte_api">vkontakte_api</a>), 
+      и обработка изображений с помощью сервиса <a href="http://www.blitline.com/">www.blitline.com</a></p>
+
+      <p>
+        <% if session[:token] %>
+          <a class="btn btn-primary btn-large" href="/logout">Выйти</a>
+        <% else %>
+          <a class="btn btn-primary btn-large" href="/auth/vkontakte">Войти через аккаунт VK &raquo;</a>
+        <% end %>
+      </p>
+    </div>
+    <% if @app %>
+      <%= erb :blitline_demo %>
+    <% end %>
+  </div><!--/span-->
+</div><!--/row-->

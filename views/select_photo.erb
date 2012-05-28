@@ -1,0 +1,17 @@
+  <h2>Выберите фото для обработки</h2>
+  <%
+    @photos = @app.photos.get_all(:count=>7)
+    cnt = @photos.shift
+  %>
+  <% @photos.each do |photo| %>
+    <a target="_blank" href="/?img_src=<%= photo[:src_big] %>"><img border="0" src="<%= photo[:src_small] %>" /></a>
+  <% end %>
+
+  <%
+
+  # очищаем сессию с результатом обработки изображения
+  if session[:blitline_result]
+    session[:blitline_result] = nil
+  end
+  
+  %>

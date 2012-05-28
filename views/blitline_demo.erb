@@ -1,0 +1,11 @@
+<div class="row-fluid">
+  <div class="span8">
+    <p>
+  <% unless params[:img_src] %>
+    <%= erb :select_photo %>
+  <% else %>
+    <%= erb :filters_demo %>
+  <% end %>
+    </p>
+  </div><!--/span-->
+</div><!--/row-->
